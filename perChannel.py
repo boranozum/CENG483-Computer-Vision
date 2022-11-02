@@ -17,19 +17,8 @@ bHist = []
 if gridInput == 'Y':
     gridN = int(input('Enter the grid size N (2,4,6,8): '))
 
-    if gridN not in [2, 4, 6, 8]:
-        while gridN not in [2, 4, 6, 8]:
-            gridN = int(input('Invalid grid size! Please re-enter the grid size N (2,4,6,8): '))
 
-elif gridInput != 'N':
-    while gridInput != 'Y' and gridInput != 'N':
-        gridInput = input('Invalid answer! Please type Y or N: ')
-        if gridInput == 'Y':
-            gridN = int(input('Enter the grid size N (2,4,6,8): '))
 
-            if gridN not in [2, 4, 6, 8]:
-                while gridN not in [2, 4, 6, 8]:
-                    gridN = int(input('Invalid grid size! Please re-enter the grid size N (2,4,6,8): '))
 
 else:
 
@@ -73,7 +62,6 @@ else:
 
             if instance == instances[lowestAt]:
                 totalCorrect += 1
-
 
         top1Acc = totalCorrect / len(instances)
 
