@@ -1,6 +1,5 @@
 import utils
 from matplotlib.image import imread
-import numpy as np
 
 file = open('InstanceNames.txt')
 instances = file.readlines()
@@ -18,51 +17,71 @@ if gridInput == 'Y':
     gridN = int(input('Enter the grid size N (2,4,6,8): '))
 
 
+for instance in instances:
+    filename = 'support_96/' + instance.strip()
+    image = imread(filename)
 
+    grid = utils.divideIntoGrid(image, gridN)
 
-else:
+    cellR = []
+    cellG = []
+    cellB = []
+
+    for cell in grid:
+
+        hist = utils.perChannelHistogram(cell, interval)
+        cellR.append(utils.l1Normalizer(hist[0]))
+        cellG.append(utils.l1Normalizer(hist[1]))
+        cellB.append(utils.l1Normalizer(hist[2]))
+
+    rHist.append(cellR)
+    gHist.append(cellG)
+    bHist.append(cellB)
+
+# Query 1
+
+for j in range(1, 4):
+
+    totalCorrect = 0
 
     for instance in instances:
-        filename = 'support_96/' + instance.strip()
+        filename = 'query_' + str(j) + '/' + instance.strip()
         image = imread(filename)
-        hist = utils.perChannelHistogram(image, interval)
 
-        rHist.append(utils.l1Normalizer(hist[0]))
-        gHist.append(utils.l1Normalizer(hist[1]))
-        bHist.append(utils.l1Normalizer(hist[2]))
+        queryGrid = utils.divideIntoGrid(image, gridN)
 
-    # Query 1
+        cellR = []
+        cellG = []
+        cellB = []
 
-    for j in range(1, 4):
+        for cell in queryGrid:
+            hist = utils.perChannelHistogram(cell, interval)
+            cellR.append(utils.l1Normalizer(hist[0]))
+            cellG.append(utils.l1Normalizer(hist[1]))
+            cellB.append(utils.l1Normalizer(hist[2]))
 
-        totalCorrect = 0
+        lowestAt = -1
+        minDivergence = 99999
 
-        for instance in instances:
-            filename = 'query_' + str(j) + '/' + instance.strip()
-            image = imread(filename)
+        for i in range(len(instances)):
+            div = 0
+            for k in range(gridN*gridN):
 
-            queryHist = utils.perChannelHistogram(image, interval)
-            redChannelHist = utils.l1Normalizer(queryHist[0])
-            greenChannelHist = utils.l1Normalizer(queryHist[1])
-            blueChannelHist = utils.l1Normalizer(queryHist[2])
+                divR = utils.JSDivergence(cellR[k], rHist[i][k])
+                divG = utils.JSDivergence(cellG[k], gHist[i][k])
+                divB = utils.JSDivergence(cellB[k], bHist[i][k])
 
-            lowestAt = -1
-            minDivergence = 99999
+                div += (divR + divG + divB) / 3
 
-            for i in range(len(instances)):
-                divR = utils.JSDivergence(redChannelHist, rHist[i])
-                divG = utils.JSDivergence(greenChannelHist, gHist[i])
-                divB = utils.JSDivergence(blueChannelHist, bHist[i])
+            div /= 4
 
-                div = (divR + divG + divB) / 3
+            if div < minDivergence:
+                minDivergence = div
+                lowestAt = i
 
-                if div < minDivergence:
-                    minDivergence = div
-                    lowestAt = i
+        if instance == instances[lowestAt]:
+            totalCorrect += 1
 
-            if instance == instances[lowestAt]:
-                totalCorrect += 1
+    top1Acc = totalCorrect / len(instances)
 
-        top1Acc = totalCorrect / len(instances)
-
-        print(f'Top-1 accuracy of the query-{j} dataset is: {top1Acc}')
+    print(f'Top-1 accuracy of the query-{j} dataset is: {top1Acc}')
