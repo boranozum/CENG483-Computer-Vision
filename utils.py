@@ -18,19 +18,23 @@ def perChannelHistogram(image, interval):
     return result
 
 
-def threeDHistogram(image, interval):
+def threeDHistogram(image, bins):
     imageHeight = image.shape[0]
 
-    result = np.zeros(interval, int)
+    res = np.zeros(bins**3,dtype=int)
 
-    size = 256 / interval
+    interval = int(256/bins)
 
-    for i in range(imageHeight):
-        for j in range(interval):
-            a = (image >= size * j) & (image < size * (j + 1))
-            result[j] = ((a[0][:, 0] == True) & (a[0][:, 1] == True) & (a[0][:, 2] == True)).sum()
+    tempImage = image.reshape(imageHeight*imageHeight,3)
 
-    return result
+    b = np.floor_divide(tempImage, interval)
+    c = b[:, 0] * (bins**2) + b[:, 1] * bins + b[:, 2]
+
+    unique, counts = np.unique(c, return_counts=True)
+
+    res[unique] = counts
+
+    return res
 
 def l1Normalizer(hist):
     norm = np.linalg.norm(hist)
@@ -64,7 +68,7 @@ def divideIntoGrid(image, n):
 
     for i in range(n):
         for j in range(n):
-            cell = image[i * size:, :(i + 1) * size][j * size:(j + 1) * size]
+            cell = image[i * size:(i + 1) * size, j * size:(j + 1) * size]
             grid.append(cell)
 
     return grid
